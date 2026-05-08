@@ -7,21 +7,21 @@ pipeline {
      * ---------------------------------------------------------------
      */
     environment {
-        DOCKERHUB_USER     = 'YOUR_DOCKERHUB_USERNAME'
+        DOCKERHUB_USER     = 'jawad201'
         IMAGE_NAME         = 'task-manager'
         IMAGE_TAG          = "${env.BUILD_NUMBER}"
         APP_PORT           = '8081'
         APP_URL            = "http://localhost:8081"
 
         // Public HTTPS URL of the *separate* test repository
-        TEST_REPO_URL      = 'https://github.com/YOUR_GITHUB_USERNAME/taskmanager-selenium-tests.git'
+        TEST_REPO_URL      = 'https://github.com/jawad201-cmd/taskmanager-selenium-tests.git'
         TEST_REPO_BRANCH   = 'main'
 
         // Docker image with Chrome + Maven + JDK + ChromeDriver
         TEST_IMAGE         = 'markhobson/maven-chrome:latest'
 
         // Sender address configured in Jenkins SMTP (see SETUP_GUIDE.md)
-        SMTP_FROM          = '[email protected]'
+        SMTP_FROM          = 'jawadtaj201@gmail.com'
     }
 
     triggers {
