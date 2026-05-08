@@ -132,18 +132,28 @@ public class TaskManagerTest {
     void testMarkTaskDone() {
         String t = "Done " + shortId();
         addTask(t);
-        findTaskItem(t).findElement(DONE_BUTTON).click();
-        wait.until(d -> findTaskItem(t).getAttribute("class").contains("done"));
-        assertTrue(findTaskItem(t).getAttribute("class").contains("done"));
+        clickWithRetry(t, DONE_BUTTON);
+        wait.until(d -> {
+            WebElement el = findTaskItemOrNull(t);
+            return el != null && el.getAttribute("class").contains("done");
+        });
+        WebElement item = findTaskItemOrNull(t);
+        assertNotNull(item);
+        assertTrue(item.getAttribute("class").contains("done"));
     }
 
     @Test @Order(13) @DisplayName("13 - Done has strikethrough")
     void testDoneTaskHasStrikethrough() {
         String t = "Strike " + shortId();
         addTask(t);
-        findTaskItem(t).findElement(DONE_BUTTON).click();
-        wait.until(d -> findTaskItem(t).getAttribute("class").contains("done"));
-        String dec = findTaskItem(t).findElement(TASK_TEXT).getCssValue("text-decoration");
+        clickWithRetry(t, DONE_BUTTON);
+        wait.until(d -> {
+            WebElement el = findTaskItemOrNull(t);
+            return el != null && el.getAttribute("class").contains("done");
+        });
+        WebElement item = findTaskItemOrNull(t);
+        assertNotNull(item);
+        String dec = item.findElement(TASK_TEXT).getCssValue("text-decoration");
         assertTrue(dec.contains("line-through"));
     }
 
@@ -151,18 +161,26 @@ public class TaskManagerTest {
     void testUnmarkTaskDone() {
         String t = "Toggle " + shortId();
         addTask(t);
-        findTaskItem(t).findElement(DONE_BUTTON).click();
-        wait.until(d -> findTaskItem(t).getAttribute("class").contains("done"));
-        findTaskItem(t).findElement(DONE_BUTTON).click();
-        wait.until(d -> !findTaskItem(t).getAttribute("class").contains("done"));
-        assertFalse(findTaskItem(t).getAttribute("class").contains("done"));
+        clickWithRetry(t, DONE_BUTTON);
+        wait.until(d -> {
+            WebElement el = findTaskItemOrNull(t);
+            return el != null && el.getAttribute("class").contains("done");
+        });
+        clickWithRetry(t, DONE_BUTTON);
+        wait.until(d -> {
+            WebElement el = findTaskItemOrNull(t);
+            return el != null && !el.getAttribute("class").contains("done");
+        });
+        WebElement item = findTaskItemOrNull(t);
+        assertNotNull(item);
+        assertFalse(item.getAttribute("class").contains("done"));
     }
 
     @Test @Order(15) @DisplayName("15 - Delete task")
     void testDeleteTask() {
         String t = "Del " + shortId();
         addTask(t);
-        findTaskItem(t).findElement(DELETE_BUTTON).click();
+        clickWithRetry(t, DELETE_BUTTON);
         wait.until(d -> !taskExistsInList(t));
         assertFalse(taskExistsInList(t));
     }
@@ -191,7 +209,9 @@ public class TaskManagerTest {
     void testSpecialCharactersHandled() {
         String t = "Edge <case> & \"q\" " + shortId();
         addTask(t);
-        assertEquals(t, findTaskItem(t).findElement(TASK_TEXT).getText().trim());
+        WebElement item = findTaskItemOrNull(t);
+        assertNotNull(item);
+        assertEquals(t, item.findElement(TASK_TEXT).getText().trim());
     }
 
     @Test @Order(19) @DisplayName("19 - /health returns 200")
@@ -230,12 +250,25 @@ public class TaskManagerTest {
         return false;
     }
 
-    private WebElement findTaskItem(String text) {
+    private WebElement findTaskItemOrNull(String text) {
         for (WebElement el : driver.findElements(TASK_ITEMS)) {
             try { if (el.findElement(TASK_TEXT).getText().trim().equals(text)) return el; }
             catch (Exception ignored) {}
         }
-        throw new AssertionError("Task not found: " + text);
+        return null;
+    }
+
+    private void clickWithRetry(String text, By buttonSelector) {
+        wait.until(d -> {
+            try {
+                WebElement el = findTaskItemOrNull(text);
+                if (el == null) return false;
+                el.findElement(buttonSelector).click();
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        });
     }
 
     private void clearAllTasksViaUI() {
